@@ -3,9 +3,14 @@ import numpy as np
 from typing import Dict, List
 
 from config import CONFIG
-from data.fetcher import get_price_data, get_daily_data, get_stock_news
+from data.fetcher import get_price_data, get_daily_data, get_stock_news, get_earnings_dates
 from data.indicators import (add_all_indicators, add_daily_trend_features,
-                              add_cross_asset_features, add_pead_features)
+                              add_cross_asset_features, add_pead_features,
+                              add_peer_features, add_macro_event_features,
+                              add_market_features, add_calendar_features,
+                              add_cross_sectional_features,
+                              add_microstructure_features, add_regime_features,
+                              add_earnings_features)
 from sentiment.analyzer import analyze_headlines
 from ml.features import prepare_dataset, time_series_split, CLASS_LABELS, target_bars_for_interval, compute_class_weights
 from ml.model import RSIModel
@@ -63,6 +68,55 @@ def train_on_ticker(ticker: str, period: str = None, interval: str = "1h") -> Di
             print(f"[train] Warning: PEAD features failed: {e}")
     except Exception as e:
         print(f"[train] Warning: daily features unavailable for {ticker}: {e}")
+
+    try:
+        edates = get_earnings_dates(ticker)
+        if edates:
+            df = add_earnings_features(df, edates)
+            print(f"[train] Earnings proximity features added ({len(edates)} events)")
+    except Exception as e:
+        print(f"[train] Warning: earnings features failed: {e}")
+    try:
+        peer_assets = {}
+        for sym in ["NVDA", "XLK", "^VIX"]:
+            if sym != ticker:
+                try:
+                    peer_assets[sym] = get_price_data(sym, period=period or CONFIG.data.train_period, interval=interval)
+                except Exception:
+                    peer_assets[sym] = None
+        df = add_peer_features(df, nvda_hourly_df=peer_assets.get("NVDA"),
+                               xlk_hourly_df=peer_assets.get("XLK"),
+                               vix_hourly_df=peer_assets.get("^VIX"))
+        print(f"[train] Peer features added (NVDA/XLK/VIX)")
+    except Exception as e:
+        print(f"[train] Warning: peer features failed: {e}")
+    try:
+        spy_h = get_price_data("SPY", period=period or CONFIG.data.train_period, interval=interval)
+        spy_h = add_all_indicators(spy_h)
+        df = add_market_features(df, spy_h)
+        print(f"[train] SPY market features added")
+    except Exception as e:
+        print(f"[train] Warning: market features failed: {e}")
+    try:
+        df = add_macro_event_features(df)
+        print(f"[train] Macro event features added (FOMC/NFP)")
+    except Exception as e:
+        print(f"[train] Warning: macro features failed: {e}")
+    try:
+        df = add_calendar_features(df)
+        print(f"[train] Calendar features added")
+    except Exception as e:
+        print(f"[train] Warning: calendar features failed: {e}")
+    try:
+        df = add_microstructure_features(df)
+        print(f"[train] Microstructure features added")
+    except Exception as e:
+        print(f"[train] Warning: microstructure features failed: {e}")
+    try:
+        df = add_regime_features(df)
+        print(f"[train] Regime features added")
+    except Exception as e:
+        print(f"[train] Warning: regime features failed: {e}")
 
     print(f"[train] Fetching news sentiment for {ticker}...")
     try:
