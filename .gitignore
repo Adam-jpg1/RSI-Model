@@ -1,0 +1,63 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# ── Virtual environments ───────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Secrets — never commit real keys ──────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+# .env.example is intentionally tracked (it has no real values)
+
+# ── Trained model artifacts ───────────────────────────────────────────────────
+# Regenerate with: python main.py train --tickers <TICKER>
+# Optimise first: python main.py optimize --tickers <TICKER> --retrain
+models/*.json
+models/*.pkl
+
+# ── Auto-generated cache and optimizer output ─────────────────────────────────
+# universe_cache.json  — refreshed with: python main.py universe --refresh
+# params_*.json        — regenerated with: python main.py optimize
+# Use models/* (not models/) so the !.gitkeep negation below can fire
+models/*
+
+# Keep the models directory itself so the path resolves on a fresh clone
+!models/.gitkeep
+
+# ── Backtest equity plots ──────────────────────────────────────────────────────
+backtest_*.png
+
+# ── Data cache ────────────────────────────────────────────────────────────────
+data_cache/
+
+# ── Logs and run output ───────────────────────────────────────────────────────
+logs/
+*.log
+*_log.txt
+*_err.txt
+
+# ── Research / run artefacts ──────────────────────────────────────────────────
+edge_research_results.json
+research_results.json
+shap_results.csv
+rsi2_*.csv
+rsi2_*.json
+rsi2_last_recal.txt
+rsi2_param_log.csv
+rsi2_recal_log.csv
+
+# ── OS / IDE ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
