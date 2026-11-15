@@ -31,6 +31,8 @@ models/*
 
 # Keep the models directory itself so the path resolves on a fresh clone
 !models/.gitkeep
+# Track trained XGBoost model files — deployment artifacts
+!models/xgb_model_*.json
 
 # ── Backtest equity plots ──────────────────────────────────────────────────────
 backtest_*.png
